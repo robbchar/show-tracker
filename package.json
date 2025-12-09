@@ -1,0 +1,12 @@
+{
+  "name": "show-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "yarn@4.12.0",
+  "workspaces": [
+    "functions",
+    "apps/*",
+    "packages/*"
+  ],
+  "license": "MIT"
+}
