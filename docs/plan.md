@@ -24,6 +24,7 @@
 - Mobile: Expo React Native targeting iOS/Android.
 - Backend: Firebase (Auth, Firestore, Cloud Functions; Cloud Messaging for push; Scheduled Functions/Tasks for polling).
 - CI: lightweight (GitHub Actions) for lint/test/build as feasible.
+- Runtime/tooling: Node 20 LTS (Functions runtime target); Yarn Berry with node-modules linker.
 
 ## Cost & Limits (keep it cheap)
 - Favor Firestore + Cloud Functions in free/low tiers; monitor reads/writes from scheduled jobs.

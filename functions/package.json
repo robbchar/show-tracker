@@ -1,0 +1,29 @@
+{
+  "name": "functions",
+  "version": "0.1.0",
+  "private": true,
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf lib",
+    "emulators": "firebase emulators:start --only functions,firestore,auth",
+    "serve:functions": "firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions",
+    "test": "echo \"No tests yet\"",
+    "prepare": "yarn build"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^7.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "firebase-tools": "^14.0.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.6.3"
+  }
+}
