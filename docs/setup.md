@@ -14,13 +14,17 @@ yarn install
 - Update `.firebaserc` with your Firebase project id.
 - Copy `functions/env.example` to `functions/.env` and add secrets (e.g., `THETVDB_API_KEY`).
 - Set the same env vars in your deployment environment (Functions config or secrets).
+- Firestore rules live in `firestore.rules` and are registered in `firebase.json`.
 
 ## Commands
 - Build functions: `yarn workspace functions build`
 - Emulators (functions/firestore/auth): `yarn workspace functions emulators`
 - Functions only: `yarn workspace functions serve:functions`
 - Deploy functions: `yarn workspace functions deploy` (after configuring project)
+- Deploy rules: `firebase deploy --only firestore:rules`
 
 ## Notes
 - Manual and scheduled refresh handlers are stubbed; they currently log and return placeholder responses until the refresh logic is implemented.
+- TheTVDB PIN is required at login; we store PIN + token per user server-side to enable scheduled refreshes. Manual refresh can supply a PIN to refresh the token if needed. Tokens refresh early (~25 days) before TVDB expiry.
+- Manual refresh requires Firebase Auth (Bearer ID token) and enforces a cooldown (~15 minutes).
 
