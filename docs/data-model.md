@@ -5,6 +5,7 @@
 - `users/{userId}`
   - `displayName`, `email`, `createdAt`, `settings` (notification opt-in, refresh prefs), `deviceTokens` (FCM).
   - TVDB auth: `tvdbPin`, `tvdbToken`, `tvdbTokenExpiresAt` (server-stored per user to allow scheduled refresh).
+  - Refresh timestamps: `lastManualRefreshAt`, `lastScheduledRefreshAt`.
 - `shows/{tvdbId}`
   - Cached show metadata: `title`, `poster`, `network`, `status`, `lastAirDate`, `seasons` (ids/numbers), `updatedAt`.
   - Subcollection `episodes/{episodeId}` with minimal fields: `seasonNumber`, `episodeNumber`, `airDate`, `title`, `absoluteNumber`, `updatedAt`.

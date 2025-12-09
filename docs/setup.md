@@ -25,5 +25,6 @@ yarn install
 
 ## Notes
 - Manual and scheduled refresh handlers are stubbed; they currently log and return placeholder responses until the refresh logic is implemented.
-- TheTVDB PIN is required at login; we store PIN + token per user server-side to enable scheduled refreshes. Manual refresh can supply a PIN to refresh the token if needed.
+- TheTVDB PIN is required at login; we store PIN + token per user server-side to enable scheduled refreshes. Manual refresh can supply a PIN to refresh the token if needed. Tokens refresh early (~25 days) before TVDB expiry.
+- Manual refresh requires Firebase Auth (Bearer ID token) and enforces a cooldown (~15 minutes).
 
