@@ -38,12 +38,13 @@
 - Consider freshness expectations: 2x/day schedule; manual refresh path for user immediacy.
 
 ## Data Model (initial sketch)
-- users: { profile, settings (refresh preferences, notification opt-in) }
+- users: { profile, settings (refresh preferences, notification opt-in), tvdbPin, tvdbToken, tvdbTokenExpiresAt }
 - shows: { tvdbId, title, poster, network, status, lastAirDate, seasons[] cached }
 - userShows: per-user link { showRef, addedAt, pinned?, attentionState }
 - episodes: { tvdbId, seasonNumber, episodeNumber, airDate, title } (cached minimal)
 - watchState: per-user per-episode { watchedAt }; season-level derived from episodes.
 - refreshLogs: per-user or global for last sync timestamps and errors.
+- See `docs/data-model.md` for draft collection shapes and access rules.
 
 ## Sync & Refresh Flow
 - Scheduled job (~2x/day): for each active user show, fetch deltas from TheTVDB; update cached metadata; compute attention state (new-unwatched/unwatched/watched).

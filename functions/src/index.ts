@@ -1,20 +1,11 @@
 import { onRequest } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
-
-const REGION = "us-central1";
-const SCHEDULE = "every 12 hours"; // ~2x/day
-
-const getTvdbApiKey = (): string | undefined => {
-  const apiKey = process.env.THETVDB_API_KEY;
-  if (!apiKey) {
-    logger.warn("THETVDB_API_KEY not configured; refresh operations will be skipped");
-  }
-  return apiKey;
-};
+import { getTvdbApiKey, REFRESH_SCHEDULE, REGION } from "./config";
+import { refreshAllUsers, refreshUser } from "./refresh";
 
 export const refreshShowsScheduled = onSchedule(
-  { region: REGION, schedule: SCHEDULE, timeZone: "Etc/UTC" },
+  { region: REGION, schedule: REFRESH_SCHEDULE, timeZone: "Etc/UTC" },
   async () => {
     const apiKey = getTvdbApiKey();
     if (!apiKey) {
@@ -22,8 +13,8 @@ export const refreshShowsScheduled = onSchedule(
     }
 
     logger.info("Scheduled refresh starting");
-    // TODO: fetch shows to refresh, call TheTVDB for deltas, update Firestore state.
-    logger.info("Scheduled refresh completed (stub)");
+    const result = await refreshAllUsers(apiKey);
+    logger.info("Scheduled refresh completed", result);
   }
 );
 
@@ -41,9 +32,14 @@ export const refreshShowsNow = onRequest(
       return;
     }
 
-    // TODO: enforce auth, per-user throttling, and delegate to refresh worker logic.
-    logger.info("Manual refresh requested");
-    res.status(200).json({ ok: true, message: "Manual refresh stub" });
+    // TODO: enforce auth, identify userId, and enforce per-user throttling.
+    const userId = "stub-user";
+    const pin = (req.body?.pin as string | undefined) || undefined;
+
+    const result = await refreshUser(userId, apiKey, pin);
+
+    logger.info("Manual refresh requested", { userId, result });
+    res.status(200).json({ ok: true, message: "Manual refresh stub", result });
   }
 );
 
