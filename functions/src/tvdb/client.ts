@@ -17,6 +17,13 @@ export interface TvdbEpisode {
   absoluteNumber?: number;
 }
 
+export interface TvdbSearchResult {
+  id: string;
+  name: string;
+  imageUrl?: string;
+  year?: number;
+}
+
 interface LoginResponse {
   data: {
     token: string;
@@ -46,6 +53,17 @@ interface EpisodesResponse {
       absoluteNumber?: number;
     }>;
   };
+}
+
+interface SearchResponse {
+  data: Array<{
+    id?: number;
+    tvdb_id?: number;
+    name?: string;
+    image_url?: string;
+    first_air_time?: string;
+    year?: number;
+  }>;
 }
 
 export class TvdbClient {
@@ -123,6 +141,33 @@ export class TvdbClient {
       airDate: e.aired,
       absoluteNumber: e.absoluteNumber,
     }));
+  }
+
+  async searchShows(query: string, limit = 15): Promise<TvdbSearchResult[]> {
+    const payload = await this.request<SearchResponse>(
+      `/search?query=${encodeURIComponent(query)}&type=series`
+    );
+    const data = payload?.data ?? [];
+
+    const normalizeId = (value?: number | string): string | undefined => {
+      if (value === undefined || value === null) return undefined;
+      const asString = String(value);
+      // TheTVDB can return ids like "series-73255" or raw numbers; strip the prefix if present.
+      return asString.replace(/^series-/, "").trim();
+    };
+
+    return data
+      .map((item) => {
+        const id = normalizeId(item.tvdb_id ?? item.id);
+        return {
+          id,
+          name: item.name ?? "Untitled",
+          imageUrl: item.image_url,
+          year: item.year,
+        };
+      })
+      .filter((r) => !!r.id && !!r.name)
+      .slice(0, limit) as TvdbSearchResult[];
   }
 }
 

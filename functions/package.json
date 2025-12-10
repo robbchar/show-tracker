@@ -9,9 +9,8 @@
     "clean": "rimraf lib",
     "emulators": "firebase emulators:start --only functions,firestore,auth",
     "serve:functions": "firebase emulators:start --only functions",
-    "deploy": "firebase deploy --only functions",
-    "test": "echo \"No tests yet\"",
-    "prepare": "yarn build"
+    "deploy": "firebase deploy --only functions:searchShows,functions:refreshShowsNow",
+    "test": "echo \"No tests yet\""
   },
   "engines": {
     "node": "20"

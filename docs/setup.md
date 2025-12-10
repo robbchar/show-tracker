@@ -28,3 +28,10 @@ yarn install
 - TheTVDB PIN is required at login; we store PIN + token per user server-side to enable scheduled refreshes. Manual refresh can supply a PIN to refresh the token if needed. Tokens refresh early (~25 days) before TVDB expiry.
 - Manual refresh requires Firebase Auth (Bearer ID token) and enforces a cooldown (~15 minutes).
 
+## Web app (Next.js)
+- Location: `apps/web`
+- Env: copy `apps/web/env.example` to `apps/web/.env.local` and fill Firebase client values (same project as backend).
+- Dev: `yarn workspace web dev`
+- Lint: `yarn workspace web lint`
+- Notes: UI is MVP — email/password auth, add show by TVDB ID, list shows from `show-tracker/{uid}/shows`, mark watched (sets `attentionState`).
+

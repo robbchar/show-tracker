@@ -40,7 +40,7 @@ const computeExpiry = () => {
 };
 
 const usersCollection = db.collection("users");
-const userShowsCollection = (userId: string) => db.collection("userShows").doc(userId).collection("shows");
+const userShowsCollection = (userId: string) => db.collection("show-tracker").doc(userId).collection("shows");
 const showsCollection = db.collection("shows");
 
 class MissingPinError extends Error {

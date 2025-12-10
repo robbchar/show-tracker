@@ -1,41 +1,52 @@
+
+/*
+ In general follow the pattern where each application has a /APP-NAMESPACE with specific rules underneath
+*/
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // User profile and settings (per user)
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // Global deny-all fallback
+    match /{document=**} {
+      allow read, write: if false;
     }
 
-    // Show metadata cache (read-only to clients; writes via admin/Functions)
-    match /shows/{tvdbId} {
-      allow read: if true;
-      allow write, delete, update: if false;
+    // application-tracker
+    match /application-tracker {
+      match /{applicationId} {
+        allow read, update, delete: if request.auth != null &&
+          resource.data.userId == request.auth.uid;
+        allow create: if request.auth != null &&
+          request.resource.data.userId == request.auth.uid;
+      }
+    }
 
-      // Episode cache under a show
-      match /episodes/{episodeId} {
+    // show-tracker
+    match /show-tracker {
+      // If you want a show cache or other shared collections for show-tracker:
+      // match /shows/{id} {
+      //   allow read: if true;
+      //   allow write: if false; // only Functions/admin write
+      // }
+      // show-tracker
+      match /{uid}/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // katas
+    match /katas {
+      match /{kataId} {
         allow read: if true;
-        allow write, delete, update: if false;
+        allow write: if request.auth != null;
       }
     }
 
-    // Per-user show state and watch states
-    match /userShows/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-
-      match /shows/{tvdbId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-
-        match /episodes/{episodeId} {
-          allow read, write: if request.auth != null && request.auth.uid == userId;
-        }
+    // cache_recipes
+    match /cache_recipes {
+      match /{rid} {
+        allow read: if true;
+        allow write: if false;
       }
-    }
-
-    // Refresh logs per user (optional)
-    match /refreshLogs/{userId}/logs/{logId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
-
