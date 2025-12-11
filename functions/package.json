@@ -9,7 +9,8 @@
     "clean": "rimraf lib",
     "emulators": "firebase emulators:start --only functions,firestore,auth",
     "serve:functions": "firebase emulators:start --only functions",
-    "deploy": "firebase deploy --only functions:searchShows,functions:refreshShowsNow",
+    "deploy:functions": "firebase deploy --only functions:searchShows,functions:saveTvdbPin,functions:addShow,functions:getEpisodes,functions:refreshShowsNow,functions:refreshShowsScheduled",
+    "deploy": "firebase deploy --only functions:searchShows,functions:saveTvdbPin,functions:addShow,functions:getEpisodes,functions:refreshShowsNow,functions:refreshShowsScheduled",
     "test": "echo \"No tests yet\""
   },
   "engines": {

@@ -39,9 +39,9 @@ const computeExpiry = () => {
   return admin.firestore.Timestamp.fromDate(expires);
 };
 
-const usersCollection = db.collection("users");
-const userShowsCollection = (userId: string) => db.collection("show-tracker").doc(userId).collection("shows");
-const showsCollection = db.collection("shows");
+const usersCollection = db.collection("show-tracker");
+const userShowsCollection = (userId: string) =>usersCollection.doc(userId).collection("shows");
+const showsCollection = usersCollection.doc("cache").collection("shows");
 
 class MissingPinError extends Error {
   code = "MISSING_PIN";

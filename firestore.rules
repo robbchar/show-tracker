@@ -20,16 +20,32 @@ service cloud.firestore {
       }
     }
 
-    // show-tracker
+    // show-tracker namespace
     match /show-tracker {
-      // If you want a show cache or other shared collections for show-tracker:
-      // match /shows/{id} {
-      //   allow read: if true;
-      //   allow write: if false; // only Functions/admin write
-      // }
-      // show-tracker
-      match /{uid}/{document=**} {
+      // Per-user doc (e.g., profile, settings, pin) and subcollections.
+      match /{uid} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
+
+        // User shows
+        match /shows/{id} {
+          allow read, write: if request.auth != null && request.auth.uid == uid;
+
+          match /episodes/{episodeId} {
+            allow read, write: if request.auth != null && request.auth.uid == uid;
+          }
+        }
+      }
+
+      // Shared show cache under `cache/shows/{id}` (read-only to clients).
+      match /cache {
+        match /shows/{id} {
+          allow read: if true;
+          allow write: if false;
+          match /episodes/{episodeId} {
+            allow read: if true;
+            allow write: if false;
+          }
+        }
       }
     }
 

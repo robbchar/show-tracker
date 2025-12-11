@@ -88,10 +88,9 @@
 
 .listItem {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   gap: 12px;
-  padding: 12px;
+  padding: 16px;
   border: 1px solid var(--card-border);
   border-radius: 8px;
 }
@@ -107,6 +106,11 @@
   font-weight: 600;
 }
 
+.showTitleLarge {
+  font-weight: 700;
+  font-size: 18px;
+}
+
 .muted {
   color: var(--muted);
   font-size: 12px;
@@ -118,6 +122,100 @@
   align-items: center;
   flex-wrap: wrap;
   margin-top: 4px;
+}
+
+.seasonToggle {
+  border: none;
+  background: none;
+  color: var(--button-primary);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+}
+
+.seasonToggle:hover {
+  text-decoration: underline;
+}
+
+.chevron {
+  display: inline-block;
+}
+
+.chevronButton {
+  border: 1px solid var(--card-border);
+  background: var(--button-secondary);
+  color: var(--foreground);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.showHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.showGrid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: start;
+  position: relative;
+}
+
+.showMain {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.poster {
+  width: 120px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+}
+
+.removeButton {
+  border: none;
+  background: var(--button-secondary);
+  width: 28px;
+  height: 28px;
+  color: var(--foreground);
+  cursor: pointer;
+  border-radius: 50%;
+  align-items: center;
+  font-weight: 700;
+  position: absolute;
+  top: -20px;
+  right: -20px;
+}
+
+.removeButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.overview {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted-strong, #444);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .tag {
@@ -132,6 +230,70 @@
 .actions {
   display: flex;
   gap: 8px;
+}
+
+.seasonsWrapper {
+  border-top: 1px solid var(--card-border);
+  padding-top: 8px;
+}
+
+.seasonList,
+.episodeList {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.seasonRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.seasonTitle {
+  font-weight: 600;
+}
+
+.iconButton {
+  border: 1px solid var(--button-secondary-border);
+  background: var(--button-secondary);
+  color: var(--button-secondary-text);
+  padding: 0;
+  width: 36px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.episodeRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.episodeText {
+  flex: 1;
+  min-width: 0;
+}
+
+.episodeOverview {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .error {
@@ -243,5 +405,19 @@
   .listItem {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .showHeader {
+    flex-direction: column;
+  }
+
+  .showGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .poster {
+    width: 100%;
+    height: auto;
+    max-height: 240px;
   }
 }

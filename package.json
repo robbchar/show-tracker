@@ -8,5 +8,9 @@
     "apps/*",
     "packages/*"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "deploy:functions": "yarn workspace functions deploy",
+    "deploy:rules": "firebase deploy --only firestore:rules"
+  }
 }
