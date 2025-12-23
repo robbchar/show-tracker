@@ -42,6 +42,6 @@ Track TV shows, cache metadata from TheTVDB, and mark episodes watched. Web app 
 - Remove show: deletes user show + watch-state docs; cache remains shared.
 
 ## Handy Root commands
-- Deploy Firestore functions `yarn deploy:functions`
+- Deploy Firestore functions: `yarn deploy:functions`
 - Deploy Firestore rules: `yarn deploy:rules`
 
