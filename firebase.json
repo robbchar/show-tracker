@@ -14,6 +14,13 @@
   "firestore": {
     "rules": "firestore.rules"
   },
+  "hosting": [
+    {
+      "target": "show-tracker-web-site",
+      "public": "apps/web/out",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    }
+  ],
   "emulators": {
     "functions": {
       "port": 5001
