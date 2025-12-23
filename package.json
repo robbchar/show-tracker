@@ -12,6 +12,7 @@
   "scripts": {
     "run:web": "yarn workspace web dev",
     "deploy:functions": "yarn workspace functions deploy",
-    "deploy:rules": "firebase deploy --only firestore:rules"
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "test": "yarn workspace web test"
   }
 }
