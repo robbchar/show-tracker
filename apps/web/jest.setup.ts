@@ -10,3 +10,24 @@ if (!global.crypto) {
   global.crypto.randomUUID = webcrypto.randomUUID.bind(webcrypto);
 }
 
+// Fail fast if an unmocked fetch is called in tests to avoid real network.
+const originalFetch = global.fetch;
+
+beforeAll(() => {
+  global.fetch = jest.fn(async (...args: Parameters<typeof fetch>) => {
+    throw new Error(`Unmocked fetch in tests: ${JSON.stringify(args[0])}`);
+  }) as typeof fetch;
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  (global.fetch as jest.Mock).mockReset();
+  (global.fetch as jest.Mock).mockImplementation(async (...args: Parameters<typeof fetch>) => {
+    throw new Error(`Unmocked fetch in tests: ${JSON.stringify(args[0])}`);
+  });
+});
+
+afterAll(() => {
+  global.fetch = originalFetch;
+});
+

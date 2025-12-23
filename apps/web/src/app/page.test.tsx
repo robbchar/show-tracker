@@ -52,12 +52,11 @@ jest.mock("firebase/firestore", () => {
   };
 });
 
-const mockFetch = jest.spyOn(global, "fetch");
+const mockFetch = jest.fn();
 
 beforeEach(() => {
   mockGetDocs.mockReset();
   mockGetDoc.mockReset();
-  mockFetch.mockReset();
   mockGetDocs.mockResolvedValue({ docs: [] });
   mockGetDoc.mockResolvedValue({ exists: () => false });
   const original = global.crypto;
@@ -67,6 +66,8 @@ beforeEach(() => {
     randomUUID: () => "toast-id-0000-0000-0000-000000000000",
   } as Crypto;
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = "demo-project";
+  // Override fetch for this suite.
+  (global.fetch as unknown as jest.Mock).mockImplementation(mockFetch);
 });
 
 const buildShowDoc = (id: string, attentionState: string | null, overrides: Record<string, unknown> = {}) => ({
