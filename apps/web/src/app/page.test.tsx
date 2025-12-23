@@ -145,6 +145,72 @@ describe("Home refresh", () => {
   });
 });
 
+describe("Show interactions", () => {
+  it("adds a show via search dialog", async () => {
+    mockGetDocs.mockResolvedValueOnce({ docs: [] });
+    mockFetch.mockImplementation((url: string) => {
+      if (url.includes("/searchShows")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ results: [{ id: "123", name: "My Show", year: 2024 }] }),
+        } as Response);
+      }
+      if (url.includes("/addShow")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            show: { id: "123", name: "My Show", image: null, overview: "desc" },
+          }),
+        } as Response);
+      }
+      return Promise.reject(new Error(`Unexpected fetch ${url}`));
+    });
+
+    render(<Home />);
+    await screen.findByText(/No shows yet/i);
+
+    await userEvent.click(screen.getByRole("button", { name: /Add show/i }));
+    await userEvent.type(screen.getByPlaceholderText(/Type a show title/i), "My");
+    await screen.findByRole("button", { name: /My Show/i });
+    await userEvent.click(screen.getByRole("button", { name: /My Show/i }));
+    await userEvent.click(screen.getByRole("button", { name: /Add to library/i }));
+
+    await screen.findByText(/My Show/i);
+  });
+
+  it("expands a show and toggles episode watched", async () => {
+    mockGetDocs.mockResolvedValueOnce({
+      docs: [buildShowDoc("1", "unwatched", { title: "My Show" })],
+    });
+    mockGetDoc.mockResolvedValue({ exists: () => false });
+    const episodesPayload = {
+      episodes: [
+        { id: "e1", seasonNumber: 1, episodeNumber: 1, title: "Pilot" },
+        { id: "e2", seasonNumber: 1, episodeNumber: 2, title: "Next" },
+      ],
+    };
+    mockFetch.mockImplementation((url: string) => {
+      if (url.includes("/getEpisodes")) {
+        return Promise.resolve({ ok: true, json: async () => episodesPayload } as Response);
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) } as Response);
+    });
+
+    render(<Home />);
+    await screen.findByText(/My Show/);
+
+    await userEvent.click(screen.getByRole("button", { name: /Seasons/i }));
+    // Expand season within the seasons list.
+    await userEvent.click(screen.getByRole("button", { name: /Expand season/i }));
+    await screen.findByText(/S1E1/i);
+
+    const toggle = screen.getAllByRole("button", { name: /Mark watched/i })[0];
+    await userEvent.click(toggle);
+    // The UI toggle should flip to "Mark unwatched" after click.
+    await screen.findByRole("button", { name: /Mark unwatched/i });
+  });
+});
+
 describe("Attention ordering", () => {
   it("orders shows new-unwatched > unwatched > watched", async () => {
     mockGetDocs.mockResolvedValueOnce({
