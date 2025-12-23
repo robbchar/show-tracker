@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+
 const mockUser = {
   uid: "user-1",
   email: "test@example.com",
@@ -30,7 +31,7 @@ jest.mock("@/components/theme-provider", () => ({
   }),
 }));
 
-import Home from "../page";
+import Home from "./page";
 
 const mockGetDocs = jest.fn();
 const mockGetDoc = jest.fn();
