@@ -209,6 +209,55 @@ describe("Show interactions", () => {
     // The UI toggle should flip to "Mark unwatched" after click.
     await screen.findByRole("button", { name: /Mark unwatched/i });
   });
+
+  it("marks a season watched and then unwatched", async () => {
+    mockGetDocs.mockResolvedValueOnce({
+      docs: [buildShowDoc("1", "unwatched", { title: "My Show" })],
+    });
+    mockGetDoc.mockResolvedValue({ exists: () => false });
+    const episodesPayload = {
+      episodes: [
+        { id: "e1", seasonNumber: 1, episodeNumber: 1, title: "Pilot" },
+        { id: "e2", seasonNumber: 1, episodeNumber: 2, title: "Next" },
+      ],
+    };
+    mockFetch.mockImplementation((url: string) => {
+      if (url.includes("/getEpisodes")) {
+        return Promise.resolve({ ok: true, json: async () => episodesPayload } as Response);
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) } as Response);
+    });
+
+    render(<Home />);
+    await screen.findByText(/My Show/);
+
+    await userEvent.click(screen.getByRole("button", { name: /Seasons/i }));
+    await userEvent.click(screen.getByRole("button", { name: /Expand season/i }));
+    await screen.findByText(/S1E1/i);
+
+    const seasonToggle = screen.getByRole("button", { name: /Mark season watched/i });
+    await userEvent.click(seasonToggle);
+    await screen.findAllByRole("button", { name: /Mark unwatched/i });
+
+    // Now toggle back to unwatched.
+    const seasonToggleBack = screen.getByRole("button", { name: /Mark season unwatched/i });
+    await userEvent.click(seasonToggleBack);
+    await screen.findAllByRole("button", { name: /Mark watched/i });
+  });
+
+  it("removes a show and clears it from the list", async () => {
+    mockGetDocs.mockResolvedValueOnce({
+      docs: [buildShowDoc("1", "unwatched", { title: "My Show" })],
+    });
+    mockGetDoc.mockResolvedValue({ exists: () => false });
+    mockFetch.mockResolvedValue({ ok: true, json: async () => ({}) } as Response);
+
+    render(<Home />);
+    await screen.findByText(/My Show/);
+
+    await userEvent.click(screen.getByRole("button", { name: /Remove My Show/i }));
+    expect(screen.queryByText(/My Show/)).not.toBeInTheDocument();
+  });
 });
 
 describe("Attention ordering", () => {
