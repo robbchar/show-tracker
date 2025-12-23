@@ -7,7 +7,7 @@ All app data lives under the `show-tracker` namespace in Firestore.
 - `show-tracker/{userId}`
   - User profile/auth data for this app: `tvdbPin`, `tvdbToken`, `tvdbTokenExpiresAt`, `lastManualRefreshAt`, `lastScheduledRefreshAt` (others like displayName/email optional).
   - Subcollection `shows/{tvdbId}`
-    - Per-user show state: `title`, `addedAt`, `seasonCount`, (future) `attentionState`, etc.
+    - Per-user show state: `title`, `addedAt`, `seasonCount`, `attentionState` (computed during refresh), etc.
     - Subcollection `episodes/{episodeId}`
       - Per-user watch state: `watchedAt`, `seasonNumber`, `episodeNumber`, optional `source`.
 

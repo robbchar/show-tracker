@@ -31,7 +31,14 @@ export const refreshShowsScheduled = onSchedule(SCHEDULE_REGION, async () => {
   logger.info("Scheduled refresh completed", result);
 });
 
-export const refreshShowsNow = onRequest({ ...HANDLER_REGION, concurrency: 10 }, async (req, res) => {
+export const refreshShowsNow = onRequest({ ...HANDLER_REGION, concurrency: 10, invoker: "public" }, async (req, res) => {
+  applyCors(req, res, ["POST"]);
+
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
     return;
@@ -61,7 +68,7 @@ export const refreshShowsNow = onRequest({ ...HANDLER_REGION, concurrency: 10 },
   }
 
   // Per-user throttle
-  const userRef = admin.firestore().collection("users").doc(userId);
+  const userRef = usersCollection.doc(userId);
   const snap = await userRef.get();
   const lastManual = snap.exists ? (snap.get("lastManualRefreshAt") as admin.firestore.Timestamp | undefined) : undefined;
   if (lastManual) {

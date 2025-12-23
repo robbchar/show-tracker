@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./page.module.css";
@@ -80,6 +80,9 @@ type ShowCache = {
   hasAllEpisodes?: boolean;
 };
 
+type ToastVariant = "info" | "success" | "error";
+type Toast = { id: string; message: string; variant: ToastVariant };
+
 const useDebouncedValue = <T,>(value: T, delayMs: number): T => {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -112,6 +115,9 @@ export default function Home() {
   const [shows, setShows] = useState<UserShow[]>([]);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const toastTimers = useRef<NodeJS.Timeout[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<ShowSearchResult[]>([]);
@@ -135,10 +141,110 @@ export default function Home() {
     return [...shows].sort((a, b) => priority(a.attentionState) - priority(b.attentionState));
   }, [shows]);
 
+  useEffect(() => {
+    const timersRef = toastTimers.current;
+    return () => {
+      timersRef.forEach((t) => clearTimeout(t));
+    };
+  }, []);
+
+  const attentionMeta = useCallback((state?: string | null) => {
+    switch (state) {
+      case "new-unwatched":
+        return { label: "New", className: "tagNew" };
+      case "unwatched":
+        return { label: "Unwatched", className: "tagUnwatched" };
+      default:
+        return null;
+    }
+  }, []);
+
+  const addToast = useCallback((message: string, variant: ToastVariant = "info") => {
+    const id = crypto.randomUUID();
+    setToasts((prev) => [...prev, { id, message, variant }]);
+    const timer = setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+    toastTimers.current.push(timer);
+  }, []);
+
   const functionsBaseUrl = useMemo(() => {
     const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
     return projectId ? `https://us-central1-${projectId}.cloudfunctions.net` : null;
   }, []);
+
+  const loadShows = useCallback(async () => {
+    if (!user) return;
+    setFetching(true);
+    setError(null);
+    try {
+      const snap = await getDocs(collection(db, "show-tracker", user.uid, "shows"));
+      const data: UserShow[] = await Promise.all(
+        snap.docs.map(async (d) => {
+          const val = d.data();
+          const metaSnap = await getDoc(doc(db, "show-tracker", "cache", "shows", d.id));
+          const meta = metaSnap.exists() ? (metaSnap.data() as ShowCache) : undefined;
+          return {
+            id: d.id,
+            title: (val.title as string | undefined) ?? meta?.title ?? null,
+            attentionState: (val.attentionState as string | undefined) ?? null,
+            lastRefreshAt: (val.lastRefreshAt as Timestamp | undefined) ?? null,
+            poster: meta?.poster ?? null,
+            overview: meta?.overview ?? null,
+            firstAired: meta?.firstAired ?? null,
+            lastAired: meta?.lastAired ?? null,
+            status: meta?.status ?? null,
+            network: meta?.network ?? null,
+            seasonCount: (val.seasonCount as number | undefined) ?? null,
+          };
+        })
+      );
+      setShows(data);
+      const counts: Record<string, number> = {};
+      data.forEach((s) => {
+        if (typeof s.seasonCount === "number" && s.seasonCount > 0) {
+          counts[s.id] = s.seasonCount;
+        }
+      });
+      if (Object.keys(counts).length > 0) {
+        setSeasonCounts((prev) => ({ ...counts, ...prev }));
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setFetching(false);
+    }
+  }, [user]);
+
+  const handleRefreshNow = useCallback(async () => {
+    if (!user) return;
+    if (shows.length === 0) {
+      addToast("No shows to refresh", "info");
+      return;
+    }
+    if (!functionsBaseUrl) {
+      addToast("Missing project configuration for refresh.", "error");
+      return;
+    }
+    setRefreshing(true);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch(`${functionsBaseUrl}/refreshShowsNow`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(payload?.message || `Refresh failed (${res.status})`);
+      }
+      addToast("Library refreshed", "success");
+      await loadShows();
+    } catch (err) {
+      addToast((err as Error).message, "error");
+    } finally {
+      setRefreshing(false);
+    }
+  }, [addToast, functionsBaseUrl, loadShows, shows.length, user]);
 
   const handleRemoveShow = async (tvdbId: string) => {
     if (!user) return;
@@ -376,50 +482,8 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (!user) return;
-    const load = async () => {
-      setFetching(true);
-      setError(null);
-      try {
-        const snap = await getDocs(collection(db, "show-tracker", user.uid, "shows"));
-        const data: UserShow[] = await Promise.all(
-          snap.docs.map(async (d) => {
-            const val = d.data();
-            const metaSnap = await getDoc(doc(db, "show-tracker", "cache", "shows", d.id));
-            const meta = metaSnap.exists() ? (metaSnap.data() as ShowCache) : undefined;
-            return {
-              id: d.id,
-              title: (val.title as string | undefined) ?? meta?.title ?? null,
-              attentionState: (val.attentionState as string | undefined) ?? null,
-              lastRefreshAt: (val.lastRefreshAt as Timestamp | undefined) ?? null,
-              poster: meta?.poster ?? null,
-              overview: meta?.overview ?? null,
-              firstAired: meta?.firstAired ?? null,
-              lastAired: meta?.lastAired ?? null,
-              status: meta?.status ?? null,
-              network: meta?.network ?? null,
-              seasonCount: (val.seasonCount as number | undefined) ?? null,
-            };
-          })
-        );
-        setShows(data);
-        const counts: Record<string, number> = {};
-        data.forEach((s) => {
-          if (typeof s.seasonCount === "number" && s.seasonCount > 0) {
-            counts[s.id] = s.seasonCount;
-          }
-        });
-        if (Object.keys(counts).length > 0) {
-          setSeasonCounts((prev) => ({ ...counts, ...prev }));
-        }
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setFetching(false);
-      }
-    };
-    void load();
-  }, [user]);
+    void loadShows();
+  }, [loadShows]);
 
   useEffect(() => {
     if (!showAddDialog) return;
@@ -626,7 +690,16 @@ export default function Home() {
       <div className={styles.sectionHeader}>
         <h2>Your shows</h2>
         <div className={styles.actions}>
-          {fetching && <span className={styles.tag}>Refreshing...</span>}
+          {refreshing && <span className={styles.tag}>Refreshing...</span>}
+          {!refreshing && fetching && <span className={styles.tag}>Loading...</span>}
+          <button
+            className={styles.buttonSecondary}
+            onClick={() => void handleRefreshNow()}
+            type="button"
+            disabled={refreshing || fetching || shows.length === 0}
+          >
+            Refresh library
+          </button>
           <button className={styles.buttonPrimary} onClick={openAddDialog}>
             Add show
           </button>
@@ -644,70 +717,80 @@ export default function Home() {
           </p>
         ) : (
           <ul className={styles.list}>
-            {orderedShows.map((show) => (
-              <li key={show.id} className={styles.listItem}>
-                <div className={styles.showGrid}>
-                  <div className={styles.showMain}>
-                    <div className={styles.titleRow}>
-                      <span className={styles.showTitleLarge}>{show.title || "Untitled"}</span>
-                      <span className={styles.muted}>
-                        {formatYearRange(show.firstAired, show.lastAired, show.status)}
-                      </span>
-                    </div>
-                    {show.network && <div className={styles.muted}>{show.network}</div>}
-                    <p className={styles.overview}>{show.overview ?? "No description available."}</p>
-                    <div className={styles.meta}>
-                      {show.lastRefreshAt && (
+            {orderedShows.map((show) => {
+              const badge = attentionMeta(show.attentionState);
+              return (
+                <li key={show.id} className={styles.listItem}>
+                  <div className={styles.showGrid}>
+                    <div className={styles.showMain}>
+                      <div className={styles.titleRow}>
+                        <span className={styles.showTitleLarge}>{show.title || "Untitled"}</span>
                         <span className={styles.muted}>
-                          refreshed {show.lastRefreshAt.toDate().toLocaleString()}
+                          {formatYearRange(show.firstAired, show.lastAired, show.status)}
                         </span>
-                      )}
-                      <button
-                        className={styles.seasonToggle}
-                        type="button"
-                        onClick={() => void toggleShowSeasons(show.id)}
-                      >
-                        <span className={styles.chevron}>{showExpanded[show.id] ? "▾" : "▸"}</span>
-                        {showLoading[show.id]
-                          ? "loading..."
-                          : (() => {
-                              const countFromState = seasonCounts[show.id];
-                              if (typeof countFromState === "number" && countFromState > 0) {
-                                return `${countFromState} Seasons`;
-                              }
-                              const seasonsState = episodesByShow[show.id];
-                              const seasonCount = seasonsState
-                                ? Object.keys(seasonsState)
-                                    .map(Number)
-                                    .filter((n) => n > 0).length
-                                : 0;
-                              return seasonCount > 0 ? `${seasonCount} Seasons` : "Seasons";
-                            })()}
-                      </button>
+                        {badge && (
+                          <span
+                            className={`${styles.tag} ${badge.className ? styles[badge.className] : ""}`}
+                            aria-label={`Attention: ${badge.label}`}
+                          >
+                            {badge.label}
+                          </span>
+                        )}
+                      </div>
+                      {show.network && <div className={styles.muted}>{show.network}</div>}
+                      <p className={styles.overview}>{show.overview ?? "No description available."}</p>
+                      <div className={styles.meta}>
+                        {show.lastRefreshAt && (
+                          <span className={styles.muted}>
+                            refreshed {show.lastRefreshAt.toDate().toLocaleString()}
+                          </span>
+                        )}
+                        <button
+                          className={styles.seasonToggle}
+                          type="button"
+                          onClick={() => void toggleShowSeasons(show.id)}
+                        >
+                          <span className={styles.chevron}>{showExpanded[show.id] ? "▾" : "▸"}</span>
+                          {showLoading[show.id]
+                            ? "loading..."
+                            : (() => {
+                                const countFromState = seasonCounts[show.id];
+                                if (typeof countFromState === "number" && countFromState > 0) {
+                                  return `${countFromState} Seasons`;
+                                }
+                                const seasonsState = episodesByShow[show.id];
+                                const seasonCount = seasonsState
+                                  ? Object.keys(seasonsState)
+                                      .map(Number)
+                                      .filter((n) => n > 0).length
+                                  : 0;
+                                return seasonCount > 0 ? `${seasonCount} Seasons` : "Seasons";
+                              })()}
+                        </button>
+                      </div>
                     </div>
+                    {show.poster && (
+                      <Image
+                        src={show.poster}
+                        alt={`${show.title} poster`}
+                        className={styles.poster}
+                        width={120}
+                        height={180}
+                        sizes="(max-width: 640px) 100vw, 120px"
+                      />
+                    )}
+                    <button
+                      type="button"
+                      className={styles.removeButton}
+                      aria-label={`Remove ${show.title || "this show"}`}
+                      onClick={() => void handleRemoveShow(show.id)}
+                      disabled={removing[show.id]}
+                    >
+                      {removing[show.id] ? "…" : "×"}
+                    </button>
                   </div>
-                  {show.poster && (
-                    <Image
-                      src={show.poster}
-                      alt={`${show.title} poster`}
-                      className={styles.poster}
-                      width={120}
-                      height={180}
-                      sizes="(max-width: 640px) 100vw, 120px"
-                    />
-                  )}
-                  <button
-                    type="button"
-                    className={styles.removeButton}
-                    aria-label={`Remove ${show.title || "this show"}`}
-                    onClick={() => void handleRemoveShow(show.id)}
-                    disabled={removing[show.id]}
-                  >
-                    {removing[show.id] ? "…" : "×"}
-                  </button>
-                </div>
 
-                {showExpanded[show.id] && episodesByShow[show.id] && (
+                  {showExpanded[show.id] && episodesByShow[show.id] && (
                   <div className={styles.seasonsWrapper}>
                     {Object.keys(episodesByShow[show.id]).filter((s) => Number(s) > 0).length === 0 ? (
                       <p className={styles.muted}>No episodes found.</p>
@@ -782,7 +865,8 @@ export default function Home() {
                   </div>
                 )}
               </li>
-            ))}
+            );
+          })}
           </ul>
         )}
         {error && <p className={styles.error}>{error}</p>}
@@ -846,6 +930,22 @@ export default function Home() {
           </div>
         </div>
       )}
+      <div className={styles.toastContainer} role="status" aria-live="polite">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`${styles.toast} ${
+              toast.variant === "success"
+                ? styles.toastSuccess
+                : toast.variant === "error"
+                ? styles.toastError
+                : styles.toastInfo
+            }`}
+          >
+            {toast.message}
+          </div>
+        ))}
+      </div>
     </main>
   );
 }
