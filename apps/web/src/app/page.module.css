@@ -1,0 +1,480 @@
+.main {
+  min-height: 100dvh;
+  padding: 32px;
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: var(--font-geist-sans);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  color: var(--foreground);
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.input {
+  border: 1px solid var(--button-secondary-border);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 14px;
+  background: var(--card-bg);
+  color: var(--foreground);
+}
+
+.buttonPrimary {
+  background: var(--button-primary);
+  color: var(--button-primary-text);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.buttonSecondary {
+  background: var(--button-secondary);
+  color: var(--button-secondary-text);
+  border: 1px solid var(--button-secondary-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.listItem {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+}
+
+.titleRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.showTitle {
+  font-weight: 600;
+}
+
+.showTitleLarge {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.seasonToggle {
+  border: none;
+  background: none;
+  color: var(--button-primary);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+}
+
+.seasonToggle:hover {
+  text-decoration: underline;
+}
+
+.chevron {
+  display: inline-block;
+}
+
+.chevronButton {
+  border: 1px solid var(--card-border);
+  background: var(--button-secondary);
+  color: var(--foreground);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.showHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.showGrid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: start;
+  position: relative;
+}
+
+.showMain {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.poster {
+  width: 120px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+}
+
+.removeButton {
+  border: none;
+  background: var(--button-secondary);
+  width: 28px;
+  height: 28px;
+  color: var(--foreground);
+  cursor: pointer;
+  border-radius: 50%;
+  align-items: center;
+  font-weight: 700;
+  position: absolute;
+  top: -20px;
+  right: -20px;
+}
+
+.removeButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.overview {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted-strong, #444);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  border: 1px solid var(--tag-border);
+  cursor: default;
+}
+.tagNew {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+.tagUnwatched {
+  background: #fef9c3;
+  color: #854d0e;
+  border-color: #fde68a;
+}
+.tagWatched {
+  background: #e5e7eb;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.toastContainer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1200;
+}
+
+.toast {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--foreground);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  min-width: 220px;
+}
+
+.toastSuccess {
+  border-color: #bbf7d0;
+  background: #ecfdf3;
+  color: #166534;
+}
+
+.toastError {
+  border-color: #fecdd3;
+  background: #fff1f2;
+  color: #991b1b;
+}
+
+.toastInfo {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.seasonsWrapper {
+  border-top: 1px solid var(--card-border);
+  padding-top: 8px;
+}
+
+.seasonList,
+.episodeList {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.seasonRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.seasonTitle {
+  font-weight: 600;
+}
+
+.iconButton {
+  border: 1px solid var(--button-secondary-border);
+  background: var(--button-secondary);
+  color: var(--button-secondary-text);
+  padding: 0;
+  width: 36px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.episodeRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.episodeText {
+  flex: 1;
+  min-width: 0;
+}
+
+.episodeOverview {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.error {
+  color: #b91c1c;
+  margin-top: 8px;
+}
+
+.linkButton {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.searchList {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.searchItem {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: inherit;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.searchItemSelected {
+  border-color: var(--button-primary);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.passwordRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.passwordInput {
+  flex: 1;
+}
+
+.passwordToggle {
+  border: 1px solid var(--button-secondary-border);
+  background: var(--button-secondary);
+  color: var(--button-secondary-text);
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 600;
+  min-width: 72px;
+}
+
+.themeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--button-secondary-border);
+  background: var(--button-secondary);
+  color: var(--button-secondary-text);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+}
+
+.modal {
+  background: var(--card-bg);
+  color: var(--foreground);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 20px;
+  width: min(520px, 100%);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header h1 {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .main {
+    padding: 20px;
+  }
+
+  .listItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .showHeader {
+    flex-direction: column;
+  }
+
+  .showGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .poster {
+    width: 100%;
+    height: auto;
+    max-height: 240px;
+  }
+}

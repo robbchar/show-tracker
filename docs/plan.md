@@ -72,6 +72,9 @@
 2) Backend skeleton: Firebase config, Auth, Firestore rules draft, Functions scaffolding with TheTVDB client.
 3) Data model + refresh logic: schedule 2x/day, manual refresh endpoint, minimal caching.
 4) Web MVP: auth flow, search/add show, library list with attention ordering, mark watched.
+   1) Deploy site to firebase
+   2) verify latest versions of things
+   3) Add prettier/eslint/husky 
 5) Mobile (Expo) MVP: auth, library view, mark watched, push opt-in; basic push wiring.
 6) Polish: error handling, throttling, UI highlights, minimal analytics.
 7) Hardening: tests, perf/cost checks, docs update.

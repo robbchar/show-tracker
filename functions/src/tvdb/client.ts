@@ -17,6 +17,13 @@ export interface TvdbEpisode {
   absoluteNumber?: number;
 }
 
+export interface TvdbSearchResult {
+  id: string;
+  name: string;
+  imageUrl?: string;
+  year?: number;
+}
+
 interface LoginResponse {
   data: {
     token: string;
@@ -28,10 +35,14 @@ interface SeriesResponse {
     id: number;
     name: string;
     image?: string;
+    image_url?: string;
     status?: {
       name: string;
     };
+    overview?: string;
     lastAired?: string;
+    firstAired?: string;
+    network?: string;
   };
 }
 
@@ -45,6 +56,37 @@ interface EpisodesResponse {
       aired?: string;
       absoluteNumber?: number;
     }>;
+  };
+}
+
+interface SearchResponse {
+  data: Array<{
+    id?: number;
+    tvdb_id?: number;
+    name?: string;
+    image_url?: string;
+    first_air_time?: string;
+    year?: number;
+    status?: string;
+    overview?: string;
+  }>;
+}
+
+interface SeriesExtendedResponse {
+  data: {
+    id: number;
+    name: string;
+    slug?: string;
+    image?: string;
+    image_url?: string;
+    overview?: string;
+    lastAired?: string;
+    firstAired?: string;
+    status?: {
+      id?: number;
+      name: string;
+    };
+    network?: string;
   };
 }
 
@@ -108,6 +150,41 @@ export class TvdbClient {
       status: show.status?.name,
       lastAired: show.lastAired,
     };
+
+interface SeriesExtendedResponse {
+  data: {
+    id: number;
+    name: string;
+    slug?: string;
+    image?: string;
+    image_url?: string;
+    overview?: string;
+    lastAired?: string;
+    firstAired?: string;
+    status?: {
+      id?: number;
+      name: string;
+    };
+    network?: string;
+  };
+}
+  }
+
+  async fetchShowExtended(tvdbId: string) {
+    const payload = await this.request<SeriesExtendedResponse>(
+      `/series/${tvdbId}/extended`
+    );
+    const show = payload?.data;
+    return {
+      id: show.id,
+      name: show.name,
+      image: show.image ?? show.image_url,
+      overview: show.overview,
+      firstAired: show.firstAired,
+      lastAired: show.lastAired,
+      status: show.status?.name,
+      network: show.network,
+    };
   }
 
   async fetchEpisodes(tvdbId: string): Promise<TvdbEpisode[]> {
@@ -123,6 +200,61 @@ export class TvdbClient {
       airDate: e.aired,
       absoluteNumber: e.absoluteNumber,
     }));
+  }
+
+  async fetchAllEpisodes(tvdbId: string, maxPages = 50): Promise<TvdbEpisode[]> {
+    const all: TvdbEpisode[] = [];
+    for (let page = 0; page < maxPages; page += 1) {
+      const payload = await this.request<EpisodesResponse>(
+        `/series/${tvdbId}/episodes/default?page=${page}`
+      );
+      const episodes = payload?.data?.episodes ?? [];
+      if (episodes.length === 0) {
+        break;
+      }
+      all.push(
+        ...episodes.map((e) => ({
+          id: e.id,
+          name: e.name,
+          seasonNumber: e.seasonNumber,
+          number: e.number,
+          airDate: e.aired,
+          absoluteNumber: e.absoluteNumber,
+        }))
+      );
+      // If the API page size is smaller than typical (e.g., < 50), bail when the page is not full.
+      if (episodes.length < 50) {
+        break;
+      }
+    }
+    return all;
+  }
+
+  async searchShows(query: string, limit = 15): Promise<TvdbSearchResult[]> {
+    const payload = await this.request<SearchResponse>(
+      `/search?query=${encodeURIComponent(query)}&type=series`
+    );
+    const data = payload?.data ?? [];
+
+    const normalizeId = (value?: number | string): string | undefined => {
+      if (value === undefined || value === null) return undefined;
+      const asString = String(value);
+      // TheTVDB can return ids like "series-73255" or raw numbers; strip the prefix if present.
+      return asString.replace(/^series-/, "").trim();
+    };
+
+    return data
+      .map((item) => {
+        const id = normalizeId(item.tvdb_id ?? item.id);
+        return {
+          id,
+          name: item.name ?? "Untitled",
+          imageUrl: item.image_url,
+          year: item.year,
+        };
+      })
+      .filter((r) => !!r.id && !!r.name)
+      .slice(0, limit) as TvdbSearchResult[];
   }
 }
 

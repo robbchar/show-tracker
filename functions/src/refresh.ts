@@ -1,8 +1,9 @@
 import { logger } from "firebase-functions";
-import { TvdbClient } from "./tvdb/client";
+import { TvdbClient, TvdbEpisode } from "./tvdb/client";
 import { db, admin } from "./firebase";
 
 const TOKEN_TTL_DAYS = 25; // TVDB tokens last ~30 days; refresh a bit early.
+const RECENT_EPISODE_DAYS = 21;
 
 export interface RefreshSummary {
   updatedShows: number;
@@ -39,9 +40,9 @@ const computeExpiry = () => {
   return admin.firestore.Timestamp.fromDate(expires);
 };
 
-const usersCollection = db.collection("users");
-const userShowsCollection = (userId: string) => db.collection("userShows").doc(userId).collection("shows");
-const showsCollection = db.collection("shows");
+const usersCollection = db.collection("show-tracker");
+const userShowsCollection = (userId: string) => usersCollection.doc(userId).collection("shows");
+const showsCollection = usersCollection.doc("cache").collection("shows");
 
 class MissingPinError extends Error {
   code = "MISSING_PIN";
@@ -96,8 +97,27 @@ const recordRefreshTimestamp = async (userId: string, trigger: RefreshTrigger) =
   await usersCollection.doc(userId).set(field, { merge: true });
 };
 
-const 
-refreshUserShows = async (
+const computeAttentionState = (episodes: TvdbEpisode[], watchedEpisodeIds: Set<string>): "new-unwatched" | "unwatched" | "watched" => {
+  const now = Date.now();
+  const recentThreshold = now - RECENT_EPISODE_DAYS * 24 * 60 * 60 * 1000;
+
+  let hasUnwatched = false;
+  for (const ep of episodes) {
+    if (!ep.airDate) continue;
+    const airTs = Date.parse(ep.airDate);
+    if (!Number.isFinite(airTs) || airTs > now) continue; // skip future/invalid dates
+    const isWatched = watchedEpisodeIds.has(String(ep.id));
+    if (isWatched) continue;
+    hasUnwatched = true;
+    if (airTs >= recentThreshold) {
+      return "new-unwatched";
+    }
+  }
+
+  return hasUnwatched ? "unwatched" : "watched";
+};
+
+const refreshUserShows = async (
   userId: string,
   client: TvdbClient
 ): Promise<{ updatedShows: number; updatedEpisodes: number }> => {
@@ -115,6 +135,9 @@ refreshUserShows = async (
     try {
       const show = await client.fetchShow(tvdbId);
       const episodes = await client.fetchEpisodes(tvdbId);
+      const watchedSnap = await userShowsCollection(userId).doc(tvdbId).collection("episodes").get();
+      const watchedIds = new Set(watchedSnap.docs.map((d) => d.id));
+      const attentionState = computeAttentionState(episodes, watchedIds);
 
       await showsCollection.doc(tvdbId).set(
         {
@@ -138,6 +161,7 @@ refreshUserShows = async (
         .set(
           {
             lastRefreshAt: admin.firestore.FieldValue.serverTimestamp(),
+            attentionState,
           },
           { merge: true }
         );
