@@ -150,30 +150,10 @@ export class TvdbClient {
       status: show.status?.name,
       lastAired: show.lastAired,
     };
-
-interface SeriesExtendedResponse {
-  data: {
-    id: number;
-    name: string;
-    slug?: string;
-    image?: string;
-    image_url?: string;
-    overview?: string;
-    lastAired?: string;
-    firstAired?: string;
-    status?: {
-      id?: number;
-      name: string;
-    };
-    network?: string;
-  };
-}
   }
 
   async fetchShowExtended(tvdbId: string) {
-    const payload = await this.request<SeriesExtendedResponse>(
-      `/series/${tvdbId}/extended`
-    );
+    const payload = await this.request<SeriesExtendedResponse>(`/series/${tvdbId}/extended`);
     const show = payload?.data;
     return {
       id: show.id,
@@ -257,4 +237,3 @@ interface SeriesExtendedResponse {
       .slice(0, limit) as TvdbSearchResult[];
   }
 }
-

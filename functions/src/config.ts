@@ -10,4 +10,3 @@ export const getTvdbApiKey = (): string | undefined => {
   }
   return apiKey;
 };
-

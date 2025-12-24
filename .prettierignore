@@ -1,0 +1,50 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+.next
+out
+dist
+build
+lib
+**/*.min.js
+**/*.bundle.js
+
+# Generated files
+*.log
+*.lock
+yarn.lock
+package-lock.json
+
+# Firebase
+.firebase
+firebase-debug.log
+
+# Cache
+.cache
+.parcel-cache
+.turbo
+
+# Environment
+.env
+.env.*
+
+# IDE
+.vscode
+.idea
+
+# Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Coverage
+coverage
+.nyc_output
+
+# Misc
+.DS_Store
+*.tsbuildinfo
+

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
@@ -41,4 +41,3 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useTheme = () => useContext(ThemeContext);
-

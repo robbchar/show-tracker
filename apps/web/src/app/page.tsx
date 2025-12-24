@@ -1,12 +1,5 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import styles from "./page.module.css";
-import { useAuth } from "@/components/auth-provider";
-import { useTheme } from "@/components/theme-provider";
-import { db } from "@/lib/firebase";
 import {
   collection,
   doc,
@@ -18,7 +11,16 @@ import {
   Timestamp,
   deleteDoc,
 } from "firebase/firestore";
+import Image from "next/image";
+import Link from "next/link";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import styles from "./page.module.css";
+
+import { useAuth } from "@/components/auth-provider";
+import { useTheme } from "@/components/theme-provider";
 import { signOut } from "@/lib/auth";
+import { db } from "@/lib/firebase";
 
 type UserShow = {
   id: string;
@@ -98,7 +100,11 @@ const safeYear = (iso?: string | null) => {
   return Number.isFinite(year) ? year : null;
 };
 
-const formatYearRange = (firstAired?: string | null, lastAired?: string | null, status?: string | null) => {
+const formatYearRange = (
+  firstAired?: string | null,
+  lastAired?: string | null,
+  status?: string | null
+) => {
   const start = safeYear(firstAired);
   const end = safeYear(lastAired);
   const ongoing = status && status.toLowerCase() !== "ended";
@@ -250,7 +256,9 @@ export default function Home() {
     if (!user) return;
     setRemoving((prev) => ({ ...prev, [tvdbId]: true }));
     try {
-      const episodesSnap = await getDocs(collection(db, "show-tracker", user.uid, "shows", tvdbId, "episodes"));
+      const episodesSnap = await getDocs(
+        collection(db, "show-tracker", user.uid, "shows", tvdbId, "episodes")
+      );
       if (!episodesSnap.empty) {
         const batch = writeBatch(db);
         episodesSnap.docs.forEach((docSnap) => {
@@ -284,7 +292,10 @@ export default function Home() {
     }
   };
 
-  const upsertEpisodesState = (showId: string, updater: (current: EpisodesState) => EpisodesState) => {
+  const upsertEpisodesState = (
+    showId: string,
+    updater: (current: EpisodesState) => EpisodesState
+  ) => {
     setEpisodesByShow((prev) => {
       const current = prev[showId] ?? {};
       return { ...prev, [showId]: updater(current) };
@@ -307,9 +318,12 @@ export default function Home() {
 
     try {
       const token = await user.getIdToken();
-      const res = await fetch(`${functionsBaseUrl}/getEpisodes?tvdbId=${encodeURIComponent(showId)}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${functionsBaseUrl}/getEpisodes?tvdbId=${encodeURIComponent(showId)}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!res.ok) {
         const payload = (await res.json().catch(() => ({}))) as { message?: string };
         throw new Error(payload?.message || `Get episodes failed (${res.status})`);
@@ -317,7 +331,9 @@ export default function Home() {
       const payload = (await res.json()) as { episodes?: EpisodePayload[] };
       const episodes = payload.episodes ?? [];
 
-      const watchSnap = await getDocs(collection(db, "show-tracker", user.uid, "shows", showId, "episodes"));
+      const watchSnap = await getDocs(
+        collection(db, "show-tracker", user.uid, "shows", showId, "episodes")
+      );
       const watchedSet = new Set<string>(watchSnap.docs.map((d) => d.id));
 
       const grouped: Record<number, Episode[]> = {};
@@ -338,7 +354,9 @@ export default function Home() {
         grouped[seasonNumber].push(episode);
       });
 
-      Object.values(grouped).forEach((eps) => eps.sort((a, b) => a.episodeNumber - b.episodeNumber));
+      Object.values(grouped).forEach((eps) =>
+        eps.sort((a, b) => a.episodeNumber - b.episodeNumber)
+      );
 
       upsertEpisodesState(showId, () => {
         const seasons: EpisodesState = {};
@@ -650,7 +668,7 @@ export default function Home() {
   }
 
   if (!user) {
-  return (
+    return (
       <main className={styles.main}>
         <div className={styles.header}>
           <div>
@@ -738,7 +756,9 @@ export default function Home() {
                         )}
                       </div>
                       {show.network && <div className={styles.muted}>{show.network}</div>}
-                      <p className={styles.overview}>{show.overview ?? "No description available."}</p>
+                      <p className={styles.overview}>
+                        {show.overview ?? "No description available."}
+                      </p>
                       <div className={styles.meta}>
                         {show.lastRefreshAt && (
                           <span className={styles.muted}>
@@ -750,7 +770,9 @@ export default function Home() {
                           type="button"
                           onClick={() => void toggleShowSeasons(show.id)}
                         >
-                          <span className={styles.chevron}>{showExpanded[show.id] ? "▾" : "▸"}</span>
+                          <span className={styles.chevron}>
+                            {showExpanded[show.id] ? "▾" : "▸"}
+                          </span>
                           {showLoading[show.id]
                             ? "loading..."
                             : (() => {
@@ -791,82 +813,100 @@ export default function Home() {
                   </div>
 
                   {showExpanded[show.id] && episodesByShow[show.id] && (
-                  <div className={styles.seasonsWrapper}>
-                    {Object.keys(episodesByShow[show.id]).filter((s) => Number(s) > 0).length === 0 ? (
-                      <p className={styles.muted}>No episodes found.</p>
-                    ) : (
-                      <ul className={styles.seasonList}>
-                        {Object.keys(episodesByShow[show.id])
-                          .map(Number)
-                          .filter((n) => n > 0)
-                          .sort((a, b) => a - b)
-                          .map((seasonNumber) => {
-                            const season = episodesByShow[show.id][seasonNumber];
-                            const seasonWatched =
-                              season.episodes.length > 0 &&
-                              season.episodes.every((ep) => ep.watched);
-                            return (
-                              <li key={`${show.id}-s${seasonNumber}`}>
-                                <div className={styles.seasonRow}>
-                                  <button
-                                    type="button"
-                                    className={styles.chevronButton}
-                                    aria-label={season.expanded ? "Collapse season" : "Expand season"}
-                                    onClick={() => toggleSeasonExpanded(show.id, seasonNumber)}
-                                  >
-                                    <span className={styles.chevron}>{season.expanded ? "▾" : "▸"}</span>
-                                  </button>
-                                  <span className={styles.seasonTitle}>Season {seasonNumber}</span>
-                                  <button
-                                    type="button"
-                                    className={styles.iconButton}
-                                    onClick={() => toggleSeasonWatched(show.id, seasonNumber)}
-                                    aria-label={seasonWatched ? "Mark season unwatched" : "Mark season watched"}
-                                  >
-                                    {seasonWatched ? "🙈" : "👁"}
-                                  </button>
-                                </div>
-                                {season.error && <p className={styles.error}>{season.error}</p>}
-                                {season.expanded && (
-                                  <ul className={styles.episodeList}>
-                                    {season.loading && <li className={styles.muted}>Loading episodes...</li>}
-                                    {!season.loading &&
-                                      season.episodes.map((ep) => (
-                                        <li key={ep.id} className={styles.episodeRow}>
-                                          <div className={styles.episodeText}>
-                                            <div className={styles.titleRow}>
-                                              <span className={styles.showTitle}>
-                                                S{seasonNumber}E{ep.episodeNumber}: {ep.title}
-                                              </span>
+                    <div className={styles.seasonsWrapper}>
+                      {Object.keys(episodesByShow[show.id]).filter((s) => Number(s) > 0).length ===
+                      0 ? (
+                        <p className={styles.muted}>No episodes found.</p>
+                      ) : (
+                        <ul className={styles.seasonList}>
+                          {Object.keys(episodesByShow[show.id])
+                            .map(Number)
+                            .filter((n) => n > 0)
+                            .sort((a, b) => a - b)
+                            .map((seasonNumber) => {
+                              const season = episodesByShow[show.id][seasonNumber];
+                              const seasonWatched =
+                                season.episodes.length > 0 &&
+                                season.episodes.every((ep) => ep.watched);
+                              return (
+                                <li key={`${show.id}-s${seasonNumber}`}>
+                                  <div className={styles.seasonRow}>
+                                    <button
+                                      type="button"
+                                      className={styles.chevronButton}
+                                      aria-label={
+                                        season.expanded ? "Collapse season" : "Expand season"
+                                      }
+                                      onClick={() => toggleSeasonExpanded(show.id, seasonNumber)}
+                                    >
+                                      <span className={styles.chevron}>
+                                        {season.expanded ? "▾" : "▸"}
+                                      </span>
+                                    </button>
+                                    <span className={styles.seasonTitle}>
+                                      Season {seasonNumber}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      className={styles.iconButton}
+                                      onClick={() => toggleSeasonWatched(show.id, seasonNumber)}
+                                      aria-label={
+                                        seasonWatched
+                                          ? "Mark season unwatched"
+                                          : "Mark season watched"
+                                      }
+                                    >
+                                      {seasonWatched ? "🙈" : "👁"}
+                                    </button>
+                                  </div>
+                                  {season.error && <p className={styles.error}>{season.error}</p>}
+                                  {season.expanded && (
+                                    <ul className={styles.episodeList}>
+                                      {season.loading && (
+                                        <li className={styles.muted}>Loading episodes...</li>
+                                      )}
+                                      {!season.loading &&
+                                        season.episodes.map((ep) => (
+                                          <li key={ep.id} className={styles.episodeRow}>
+                                            <div className={styles.episodeText}>
+                                              <div className={styles.titleRow}>
+                                                <span className={styles.showTitle}>
+                                                  S{seasonNumber}E{ep.episodeNumber}: {ep.title}
+                                                </span>
+                                              </div>
+                                              {ep.overview && (
+                                                <span
+                                                  className={styles.episodeOverview}
+                                                  title={ep.overview}
+                                                >
+                                                  {ep.overview}
+                                                </span>
+                                              )}
                                             </div>
-                                            {ep.overview && (
-                                              <span className={styles.episodeOverview} title={ep.overview}>
-                                                {ep.overview}
-                                              </span>
-                                            )}
-                                          </div>
-                                          <button
-                                            type="button"
-                                            className={styles.iconButton}
-                                            onClick={() => toggleEpisodeWatched(show.id, ep)}
-                                            aria-label={ep.watched ? "Mark unwatched" : "Mark watched"}
-                                          >
-                                            {ep.watched ? "🙈" : "👁"}
-                                          </button>
-                                        </li>
-                                      ))}
-                                  </ul>
-                                )}
-                              </li>
-                            );
-                          })}
-                      </ul>
-                    )}
-                  </div>
-                )}
-              </li>
-            );
-          })}
+                                            <button
+                                              type="button"
+                                              className={styles.iconButton}
+                                              onClick={() => toggleEpisodeWatched(show.id, ep)}
+                                              aria-label={
+                                                ep.watched ? "Mark unwatched" : "Mark watched"
+                                              }
+                                            >
+                                              {ep.watched ? "🙈" : "👁"}
+                                            </button>
+                                          </li>
+                                        ))}
+                                    </ul>
+                                  )}
+                                </li>
+                              );
+                            })}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
         {error && <p className={styles.error}>{error}</p>}
@@ -894,9 +934,10 @@ export default function Home() {
               </label>
               {searchError && <p className={styles.error}>{searchError}</p>}
               {searching && <p className={styles.muted}>Searching...</p>}
-              {!searching && searchQuery.trim().length >= 2 && searchResults.length === 0 && !searchError && (
-                <p className={styles.muted}>No results yet.</p>
-              )}
+              {!searching &&
+                searchQuery.trim().length >= 2 &&
+                searchResults.length === 0 &&
+                !searchError && <p className={styles.muted}>No results yet.</p>}
               <ul className={styles.searchList} role="listbox" aria-label="Search results">
                 {searchResults.map((result) => (
                   <li key={result.id}>
@@ -919,7 +960,11 @@ export default function Home() {
                 ))}
               </ul>
               <div className={styles.actions}>
-                <button className={styles.buttonSecondary} type="button" onClick={() => setShowAddDialog(false)}>
+                <button
+                  className={styles.buttonSecondary}
+                  type="button"
+                  onClick={() => setShowAddDialog(false)}
+                >
                   Cancel
                 </button>
                 <button className={styles.buttonPrimary} type="submit" disabled={!selectedShow}>
@@ -938,8 +983,8 @@ export default function Home() {
               toast.variant === "success"
                 ? styles.toastSuccess
                 : toast.variant === "error"
-                ? styles.toastError
-                : styles.toastInfo
+                  ? styles.toastError
+                  : styles.toastInfo
             }`}
           >
             {toast.message}

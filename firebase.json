@@ -1,15 +1,8 @@
 {
   "functions": {
     "source": "functions",
-    "ignore": [
-      "node_modules",
-      ".git",
-      "firebase-debug.log",
-      "firebase-debug.*.log"
-    ],
-    "predeploy": [
-      "yarn workspace functions build"
-    ]
+    "ignore": ["node_modules", ".git", "firebase-debug.log", "firebase-debug.*.log"],
+    "predeploy": ["yarn workspace functions build"]
   },
   "firestore": {
     "rules": "firestore.rules"
@@ -36,4 +29,3 @@
     }
   }
 }
-

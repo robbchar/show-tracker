@@ -17,11 +17,13 @@ All app data lives under the `show-tracker` namespace in Firestore.
     - Cached episode fields: `title`, `seasonNumber`, `episodeNumber`, `airDate`, `absoluteNumber`, `overview`, `updatedAt`.
 
 ## Access Model (rules)
+
 - Authenticated users can read/write only their own `show-tracker/{uid}/**`.
 - `show-tracker/cache/**` is readable by clients and write-protected (Functions/admin only).
 - Everything else is denied by default.
 
 ## Notes
+
 - We cache minimal show/episode fields; no full TVDB mirror.
 - Season count is persisted per-user on their `shows/{tvdbId}` once episodes are fetched.
 - Attention state is intended to be derived from episodes/watch state during refresh (future refinement).

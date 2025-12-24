@@ -1,11 +1,13 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FormEvent, useMemo, useState } from "react";
+
 import styles from "../page.module.css";
-import { signIn, signUp } from "@/lib/auth";
+
 import { useAuth } from "@/components/auth-provider";
+import { signIn, signUp } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -146,4 +148,3 @@ export default function LoginPage() {
     </main>
   );
 }
-

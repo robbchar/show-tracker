@@ -1,6 +1,6 @@
-import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import React from "react";
 
 const mockUser = {
   uid: "user-1",
@@ -70,7 +70,11 @@ beforeEach(() => {
   (global.fetch as unknown as jest.Mock).mockImplementation(mockFetch);
 });
 
-const buildShowDoc = (id: string, attentionState: string | null, overrides: Record<string, unknown> = {}) => ({
+const buildShowDoc = (
+  id: string,
+  attentionState: string | null,
+  overrides: Record<string, unknown> = {}
+) => ({
   id,
   data: () => ({
     title: `Show ${id}`,
@@ -281,4 +285,3 @@ describe("Attention ordering", () => {
     expect(titles).toEqual(["Show 1", "Show 2", "Show 3"]);
   });
 });
-

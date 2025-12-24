@@ -1,6 +1,7 @@
 import { logger } from "firebase-functions";
-import { TvdbClient, TvdbEpisode } from "./tvdb/client";
+
 import { db, admin } from "./firebase";
+import { TvdbClient, TvdbEpisode } from "./tvdb/client";
 
 const TOKEN_TTL_DAYS = 25; // TVDB tokens last ~30 days; refresh a bit early.
 const RECENT_EPISODE_DAYS = 21;
@@ -97,7 +98,10 @@ const recordRefreshTimestamp = async (userId: string, trigger: RefreshTrigger) =
   await usersCollection.doc(userId).set(field, { merge: true });
 };
 
-const computeAttentionState = (episodes: TvdbEpisode[], watchedEpisodeIds: Set<string>): "new-unwatched" | "unwatched" | "watched" => {
+const computeAttentionState = (
+  episodes: TvdbEpisode[],
+  watchedEpisodeIds: Set<string>
+): "new-unwatched" | "unwatched" | "watched" => {
   const now = Date.now();
   const recentThreshold = now - RECENT_EPISODE_DAYS * 24 * 60 * 60 * 1000;
 
@@ -135,7 +139,10 @@ const refreshUserShows = async (
     try {
       const show = await client.fetchShow(tvdbId);
       const episodes = await client.fetchEpisodes(tvdbId);
-      const watchedSnap = await userShowsCollection(userId).doc(tvdbId).collection("episodes").get();
+      const watchedSnap = await userShowsCollection(userId)
+        .doc(tvdbId)
+        .collection("episodes")
+        .get();
       const watchedIds = new Set(watchedSnap.docs.map((d) => d.id));
       const attentionState = computeAttentionState(episodes, watchedIds);
 
@@ -147,24 +154,23 @@ const refreshUserShows = async (
           status: show.status ?? null,
           lastAirDate: show.lastAired ?? null,
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          latestEpisodeAirDate: episodes
-            .map((e) => e.airDate)
-            .filter(Boolean)
-            .sort()
-            .at(-1) ?? null,
+          latestEpisodeAirDate:
+            episodes
+              .map((e) => e.airDate)
+              .filter(Boolean)
+              .sort()
+              .at(-1) ?? null,
         },
         { merge: true }
       );
 
-      await userShowsCollection(userId)
-        .doc(tvdbId)
-        .set(
-          {
-            lastRefreshAt: admin.firestore.FieldValue.serverTimestamp(),
-            attentionState,
-          },
-          { merge: true }
-        );
+      await userShowsCollection(userId).doc(tvdbId).set(
+        {
+          lastRefreshAt: admin.firestore.FieldValue.serverTimestamp(),
+          attentionState,
+        },
+        { merge: true }
+      );
 
       updatedShows += 1;
       updatedEpisodes += episodes.length;
@@ -218,7 +224,11 @@ export const refreshUser = async (
   await recordRefreshTimestamp(userId, trigger);
 
   logger.info("Refresh executed", { userId, trigger, result });
-  return { updatedShows: result.updatedShows, updatedEpisodes: result.updatedEpisodes, failures: 0 };
+  return {
+    updatedShows: result.updatedShows,
+    updatedEpisodes: result.updatedEpisodes,
+    failures: 0,
+  };
 };
 
 export const mapRefreshErrorToResponse = (err: unknown) => {
@@ -228,4 +238,3 @@ export const mapRefreshErrorToResponse = (err: unknown) => {
   const e = err as Error;
   return new RefreshError("REFRESH_FAILED", e.message || "Refresh failed", 500);
 };
-
