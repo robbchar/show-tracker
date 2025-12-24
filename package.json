@@ -11,8 +11,10 @@
   "license": "MIT",
   "scripts": {
     "run:web": "yarn workspace web dev",
+    "deploy:all": "yarn deploy:functions && yarn deploy:rules && yarn deploy:web",
     "deploy:functions": "yarn workspace functions deploy",
     "deploy:rules": "firebase deploy --only firestore:rules",
+    "deploy:web": "yarn workspace web deploy",
     "test": "yarn workspace web test"
   }
 }
