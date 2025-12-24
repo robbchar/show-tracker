@@ -32,3 +32,6 @@ build
 .yarn/build-state.yml
 .yarn/install-state.gz
 
+# Husky
+.husky/_/
+
