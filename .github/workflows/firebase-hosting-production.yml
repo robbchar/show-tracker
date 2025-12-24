@@ -46,3 +46,4 @@ jobs:
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
           projectId: robbchar-3db11
           target: show-tracker-web-site
+          channelId: deploy-pr-${{ github.event.pull_request.number }}
