@@ -3,9 +3,15 @@ name: Firebase Hosting Deploy
 on:
   push:
     branches: [main]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/firebase-hosting.yml"
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/firebase-hosting.yml"
 
 permissions:
   contents: read
