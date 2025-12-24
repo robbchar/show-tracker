@@ -1,7 +1,8 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useRouter } from "next/navigation";
+import React from "react";
+
 import LoginPage from "./page";
 
 jest.mock("next/navigation", () => ({
@@ -96,4 +97,3 @@ describe("LoginPage", () => {
     expect(pushMock).not.toHaveBeenCalled();
   });
 });
-

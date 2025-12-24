@@ -30,4 +30,3 @@ beforeEach(() => {
 afterAll(() => {
   global.fetch = originalFetch;
 });
-

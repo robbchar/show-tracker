@@ -1,6 +1,7 @@
 # Web App Test Plan (Next Steps)
 
 ## Home Page (`apps/web/src/app/page.tsx`)
+
 - Add show dialog
   - Validation: clicking “Add to library” with no selection shows “Please choose a show”.
   - Search error: mock `searchShows` 500 → shows error message in dialog.
@@ -19,6 +20,7 @@
   - Error path: Firestore delete fails → show remains, error shown.
 
 ## Login Page (`apps/web/src/app/login/page.tsx`)
+
 - Sign-up flow
   - Switch to “Create account”, submit, uses `signUp`, saves PIN, redirects to `/`.
   - Sign-up failure: `signUp` rejects → error message shown, no fetch.
@@ -29,6 +31,7 @@
 - PIN required (already covered) but also: whitespace-only PIN → shows validation error.
 
 ## Providers
+
 - AuthProvider
   - Mocks `onAuthStateChanged` to emit user, ensures children render user state.
   - Loading state: while pending, shows loading content.
@@ -36,6 +39,6 @@
   - Toggle switches theme value/class; initial default is light.
 
 ## Test Harness Hardening
+
 - Global fetch guard is in place; ensure any new test suites attach their own fetch mocks.
 - Consider a shared helper to mock functions base URL and common MSW handlers for `searchShows`, `addShow`, `getEpisodes`, `refreshShowsNow`, `saveTvdbPin`.
-

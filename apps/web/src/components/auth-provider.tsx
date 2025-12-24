@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { onAuthStateChanged, User } from "firebase/auth";
+import { ReactNode, createContext, useContext, useEffect, useState } from "react";
+
+import { auth } from "@/lib/firebase";
 
 type AuthContextValue = {
   user: User | null;
@@ -27,4 +28,3 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
-
